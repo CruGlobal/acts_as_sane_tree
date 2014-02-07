@@ -167,6 +167,17 @@ describe ActsAsSaneTree do
       ids = Node.roots.collect(&:id)
       assert_equal Node.roots, Node.find_with_descendants(ids)
     end
+
+    it "should ensure children are loaded" do
+      root = Node.find_with_descendants(@root.id)
+      assert root.children.loaded?
+    end
+
+    it "should ensure children's parent is loaded" do
+      root = Node.find_with_descendants(@root.id)
+      parent = root.children[0].association(:parent)
+      assert parent.loaded?
+    end
   end
 
 
