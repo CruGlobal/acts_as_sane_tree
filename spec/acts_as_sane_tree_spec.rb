@@ -162,10 +162,15 @@ describe ActsAsSaneTree do
     it "should return the root" do
       assert_equal @root, Node.find_with_descendants(@root.id)
     end
+
+    it "should be able to find multiple roots" do
+      ids = Node.roots.collect(&:id)
+      assert_equal Node.roots, Node.find_with_descendants(ids)
+    end
   end
 
 
-  describe "when requesting preload_descendants!" do
+  describe "when requesting preload_descendants" do
     before do
       @root = Node.roots.first
     end
@@ -183,6 +188,10 @@ describe ActsAsSaneTree do
       @root.preload_descendants!
       parent = @root.children[0].association(:parent)
       assert parent.loaded?
+    end
+
+    it "should be able to load multiple roots" do
+      assert_equal Node.roots, Node.preload_descendants(Node.roots)
     end
   end
 
