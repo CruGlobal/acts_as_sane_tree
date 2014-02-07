@@ -86,6 +86,7 @@ module ActsAsSaneTree
     # Hash:
     #   :to_depth:: Only retrieve values to given depth
     #   :at_depth:: Only retrieve values from given depth
+    #   :also_preload:: specify associations to preload (same semantics as QueryMethods::preload)
     def nodes_and_descendants(*args)
       raw = args.delete(:raw)
       no_self = args.delete(:no_self)
@@ -96,6 +97,7 @@ module ActsAsSaneTree
         args.delete(hash)
         depth = hash[:depth] || hash[:to_depth]
         at_depth = hash[:at_depth]
+        other_preloads = hash[:also_preload]
       end
       depth ||= configuration[:max_depth].to_i
       depth_restriction = "WHERE crumbs.depth + 1 < #{depth}" if depth
@@ -125,6 +127,9 @@ module ActsAsSaneTree
         end
         if(configuration[:order].present?)
           q = q.order(configuration[:order])
+        end
+        if(other_preloads)
+          q = q.preload(other_preloads)
         end
       else
         q = configuration[:class].scoped(
@@ -178,9 +183,11 @@ module ActsAsSaneTree
 
     # arg:: one or more ids
     # Returns provided nodes and preloads the children and parent associations of all descendants of provided nodes
-    def find_with_descendants(*ids)
-      ids.flatten!
-      hash = nodes_and_descendants(*ids)
+    # Hash:
+    #   :also_preload:: specify associations to preload (same semantics as QueryMethods::preload)
+    def find_with_descendants(*args)
+      options, ids = split_out_options(args)
+      hash = nodes_and_descendants(options, *ids)
       hash.each do |root, children_hash|
         recursive_init(root, children_hash)
       end
@@ -193,9 +200,11 @@ module ActsAsSaneTree
 
     # arg:: ActiveRecord model(s)
     # Returns provided nodes and preloads the children and parent associations of all descendants of provided nodes
-    def preload_descendants(*roots)
-      roots.flatten!
-      hash = nodes_and_descendants(*roots)
+    # Hash:
+    #   :also_preload:: specify associations to preload (same semantics as QueryMethods::preload)
+    def preload_descendants(*args)
+      options, roots = split_out_options(args)
+      hash = nodes_and_descendants(options, *roots)
       roots.each do |root|
         recursive_init(root, hash[root])
       end
@@ -204,6 +213,15 @@ module ActsAsSaneTree
       else
         roots
       end
+    end
+
+    def split_out_options(args)
+      options = args.detect { |x| x.is_a?(Hash) }
+      if (options)
+        args.delete(options)
+        options.delete_if {|key| key != :also_preload}
+      end
+      return options, args.flatten
     end
 
     private

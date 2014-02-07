@@ -19,6 +19,8 @@ class Node < ActiveRecord::Base
   acts_as_sane_tree
   validates_uniqueness_of :name
   validates_uniqueness_of :parent_id, :scope => :id
+
+  belongs_to :godfather, class_name: "Node"
 end
 
 class NodeSetup < ActiveRecord::Migration
@@ -27,6 +29,7 @@ class NodeSetup < ActiveRecord::Migration
       create_table :nodes do |t|
         t.text :name
         t.integer :parent_id
+        t.integer :godfather_id
       end
       add_index :nodes, [:parent_id, :id], :unique => true
     end
@@ -52,7 +55,9 @@ nodes = []
   50.times do |j|
     node = Node.new(:name => "node_#{i}_#{j}")
     parent = tree[rand(tree.size)] || root
+    godfather = tree[rand(tree.size)] || root
     node.parent_id = parent.id
+    node.godfather_id = godfather.id
     node.save
     tree << node
   end

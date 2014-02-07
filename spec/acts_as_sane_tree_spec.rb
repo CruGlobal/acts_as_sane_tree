@@ -178,6 +178,11 @@ describe ActsAsSaneTree do
       parent = root.children[0].association(:parent)
       assert parent.loaded?
     end
+
+    it "should be able to preload other associations" do
+      root = Node.find_with_descendants(@root.id, also_preload: :godfather)
+      assert root.children[0].association(:godfather).loaded?
+    end
   end
 
 
@@ -203,6 +208,11 @@ describe ActsAsSaneTree do
 
     it "should be able to load multiple roots" do
       assert_equal Node.roots, Node.preload_descendants(Node.roots)
+    end
+
+    it "should be able to preload other associations" do
+      @root.preload_descendants!(also_preload: :godfather)
+      assert @root.children[0].association(:godfather).loaded?
     end
   end
 

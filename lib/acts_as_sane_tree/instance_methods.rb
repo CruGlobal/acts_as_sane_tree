@@ -96,7 +96,7 @@ module ActsAsSaneTree
     end
   end
 
-  def preload_descendants!
-    self.class.configuration[:class].preload_descendants(self)
+  def preload_descendants!(options = {})
+    self.class.configuration[:class].preload_descendants(self, options)
   end
 end
