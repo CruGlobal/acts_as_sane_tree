@@ -169,13 +169,7 @@ module ActsAsSaneTree
     # To avoid triggering a lazy-load, we will look up the parent ourselves.
     def get_parent(node, node_index)
       return nil if node.parent_id.nil?
-
-      parent = node_index[node.parent_id]
-      unless parent
-        puts "falling back to lazy-load for parent of #{node.inspect}"
-        parent = node.parent
-      end
-      parent
+      node_index[node.parent_id] || parent = node.parent
     end
 
     public
