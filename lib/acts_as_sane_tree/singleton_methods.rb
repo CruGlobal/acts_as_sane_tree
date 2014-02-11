@@ -187,7 +187,7 @@ module ActsAsSaneTree
     #   :also_preload:: specify associations to preload (same semantics as QueryMethods::preload)
     def find_with_descendants(*args)
       options, ids = split_out_options(args)
-      hash = nodes_and_descendants(options, *ids)
+      hash = options.nil? ? nodes_and_descendants(*ids) : nodes_and_descendants(options, *ids)
       hash.each do |root, children_hash|
         recursive_init(root, children_hash)
       end
@@ -204,7 +204,7 @@ module ActsAsSaneTree
     #   :also_preload:: specify associations to preload (same semantics as QueryMethods::preload)
     def preload_descendants(*args)
       options, roots = split_out_options(args)
-      hash = nodes_and_descendants(options, *roots)
+      hash = options.nil? ? nodes_and_descendants(*roots) : nodes_and_descendants(options, *roots)
       roots.each do |root|
         recursive_init(root, hash[root])
       end
