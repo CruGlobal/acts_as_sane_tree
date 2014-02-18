@@ -159,8 +159,8 @@ describe ActsAsSaneTree do
       @root = Node.roots.first
     end
 
-    it "should return the root" do
-      assert_equal @root, Node.find_with_descendants(@root.id)
+    it "should return the root in an array" do
+      assert_equal [@root], Node.find_with_descendants(@root.id)
     end
 
     it "should be able to find multiple roots" do
@@ -169,18 +169,18 @@ describe ActsAsSaneTree do
     end
 
     it "should ensure children are loaded" do
-      root = Node.find_with_descendants(@root.id)
+      root = Node.find_with_descendants(@root.id).first
       assert root.children.loaded?
     end
 
     it "should ensure children's parent is loaded" do
-      root = Node.find_with_descendants(@root.id)
+      root = Node.find_with_descendants(@root.id).first
       parent = root.children[0].association(:parent)
       assert parent.loaded?
     end
 
     it "should be able to preload other associations" do
-      root = Node.find_with_descendants(@root.id, also_preload: :godfather)
+      root = Node.find_with_descendants(@root.id, also_preload: :godfather).first
       assert root.children[0].association(:godfather).loaded?
     end
   end
@@ -191,8 +191,8 @@ describe ActsAsSaneTree do
       @root = Node.roots.first
     end
 
-    it "should return the root" do
-      assert_equal @root, @root.preload_descendants!
+    it "should return the root in an array" do
+      assert_equal [@root], @root.preload_descendants!
     end
 
     it "should ensure children are loaded" do

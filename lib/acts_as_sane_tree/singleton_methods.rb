@@ -191,11 +191,7 @@ module ActsAsSaneTree
       hash.each do |root, children_hash|
         recursive_init(root, children_hash)
       end
-      if (ids.length == 1)
-        hash.keys.first
-      else
-        hash.keys
-      end
+      hash.keys
     end
 
     # arg:: ActiveRecord model(s)
@@ -208,11 +204,7 @@ module ActsAsSaneTree
       roots.each do |root|
         recursive_init(root, hash[root])
       end
-      if (roots.length == 1)
-        roots.first
-      else
-        roots
-      end
+      roots
     end
 
     def split_out_options(args)
