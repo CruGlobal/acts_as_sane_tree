@@ -219,6 +219,8 @@ module ActsAsSaneTree
     private
 
     def recursive_init(node, children_hash)
+      return unless children_hash
+
       initialize(children_hash.keys, node)
       children_hash.each do |child, grandchildren_hash|
         child.association(:parent).target = node
