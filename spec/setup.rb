@@ -18,7 +18,7 @@ ActiveRecord::Base.establish_connection(
 class Node < ActiveRecord::Base
   acts_as_sane_tree
   validates_uniqueness_of :name
-  validates_uniqueness_of :parent_id, :scope => :id
+  #validates_uniqueness_of :parent_id, :scope => :id
 
   belongs_to :godfather, class_name: "Node"
 end

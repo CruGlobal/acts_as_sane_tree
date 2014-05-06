@@ -1,6 +1,6 @@
 module ActsAsSaneTree
   module SingletonMethods
-    
+
     # Check if we are in rails 3
     def rails_3?
       @is_3 ||= !defined?(Arel).nil?
@@ -26,8 +26,8 @@ module ActsAsSaneTree
         configuration[:class].where("#{configuration[:foreign_key]} IS NULL").order(configuration[:order]).first
       else
         configuration[:class].find(
-          :first, 
-          :conditions => "#{configuration[:foreign_key]} IS NULL", 
+          :first,
+          :conditions => "#{configuration[:foreign_key]} IS NULL",
           :order => configuration[:order]
         )
       end
@@ -37,8 +37,8 @@ module ActsAsSaneTree
     # chk:: Array of nodes
     # Return true if any nodes within chk are found within src
     def nodes_within?(src, chk)
-      s = (src.is_a?(Array) ? src : [src]).map{|x|x.is_a?(ActiveRecord::Base) ? x.id : x.to_i}
-      c = (chk.is_a?(Array) ? chk : [chk]).map{|x|x.is_a?(ActiveRecord::Base) ? x.id : x.to_i}
+      s = (src.is_a?(Array) ? src : [src]).map{|x|x.is_a?(ActiveRecord::Base) ? x.id : x}
+      c = (chk.is_a?(Array) ? chk : [chk]).map{|x|x.is_a?(ActiveRecord::Base) ? x.id : x}
       if(s.empty? || c.empty?)
         false
       else
@@ -47,7 +47,7 @@ module ActsAsSaneTree
             SELECT #{configuration[:class].table_name}.*, 0 AS level FROM #{configuration[:class].table_name} WHERE id in (#{s.join(', ')})
             UNION ALL
             SELECT alias1.*, crumbs.level + 1 FROM crumbs JOIN #{configuration[:class].table_name} alias1 on alias1.parent_id = crumbs.id
-          ) SELECT count(*) as count FROM crumbs WHERE id in (#{c.join(', ')})"
+          ) SELECT count(*) as count FROM crumbs WHERE id in ('#{c.join("', '")}')"
         )
         q.first['count'].to_i > 0
       end
@@ -58,19 +58,19 @@ module ActsAsSaneTree
     # Return all nodes that are within both chk and src
     def nodes_within(src, chk)
       src_array = (src.respond_to?(:map) ? src : [src])
-      src_ids = src_array.map{|x|x.is_a?(ActiveRecord::Base) ? x.id : x.to_i}
+      src_ids = src_array.map{|x|x.is_a?(ActiveRecord::Base) ? x.id : x}
       chk_array = (chk.respond_to?(:map) ? chk : [chk])
-      check_ids = chk_array.map{|x|x.is_a?(ActiveRecord::Base) ? x.id : x.to_i}
+      check_ids = chk_array.map{|x|x.is_a?(ActiveRecord::Base) ? x.id : x}
       if(src_ids.empty? || check_ids.empty?)
         nil
       else
-        query = 
+        query =
           "(WITH RECURSIVE crumbs AS (
             SELECT #{configuration[:class].table_name}.*, 0 AS depth FROM #{configuration[:class].table_name} WHERE id in (#{src_ids.join(', ')})
             UNION ALL
             SELECT alias1.*, crumbs.depth + 1 FROM crumbs JOIN #{configuration[:class].table_name} alias1 on alias1.parent_id = crumbs.id
             #{configuration[:max_depth] ? "WHERE crumbs.depth + 1 < #{configuration[:max_depth].to_i}" : ''}
-          ) SELECT * FROM crumbs WHERE id in (#{check_ids.join(', ')})) as #{configuration[:class].table_name}"
+          ) SELECT * FROM crumbs WHERE id in ('#{check_ids.join("', '")}')) as #{configuration[:class].table_name}"
         if(rails_3?)
           configuration[:class].from(query)
         else
@@ -78,7 +78,7 @@ module ActsAsSaneTree
         end
       end
     end
-    
+
     # args:: ActiveRecord models or IDs - Symbols: :raw, :no_self - Hash: {:to_depth => n, :at_depth => n}
     # Returns provided nodes plus all descendants of provided nodes in nested Hash where keys are nodes and values are children
     # :raw:: return value will be flat array
@@ -107,10 +107,10 @@ module ActsAsSaneTree
       elsif(depth)
         depth_clause = "#{configuration[:class].table_name}.depth + 1 < #{depth.to_i + 2}"
       end
-      base_ids = args.map{|x| x.is_a?(ActiveRecord::Base) ? x.id : x.to_i}
-      query = 
+      base_ids = args.map{|x| x.is_a?(ActiveRecord::Base) ? x.id : x}
+      query =
         "(WITH RECURSIVE crumbs AS (
-          SELECT #{configuration[:class].table_name}.*, #{no_self ? -1 : 0} AS depth FROM #{configuration[:class].table_name} WHERE #{base_ids.empty? ? 'parent_id IS NULL' : "id in (#{base_ids.join(', ')})"}
+          SELECT #{configuration[:class].table_name}.*, #{no_self ? -1 : 0} AS depth FROM #{configuration[:class].table_name} WHERE #{base_ids.empty? ? 'parent_id IS NULL' : "id in ('#{base_ids.join("', '")}')"}
           UNION ALL
           SELECT alias1.*, crumbs.depth + 1 FROM crumbs JOIN #{configuration[:class].table_name} alias1 on alias1.parent_id = crumbs.id
           #{depth_restriction}
@@ -133,7 +133,7 @@ module ActsAsSaneTree
         end
       else
         q = configuration[:class].scoped(
-          :from => query, 
+          :from => query,
           :conditions => "#{configuration[:class].table_name}.depth >= 0"
         )
         if(configuration[:order].present?)
