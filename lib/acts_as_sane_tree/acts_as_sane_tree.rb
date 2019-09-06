@@ -58,11 +58,13 @@ module ActsAsSaneTree
 
         has_many :children,
           #-> { order(config_order) },
+          :inverse_of => :parent
           :class_name => @configuration[:class].name,
           :foreign_key => @configuration[:foreign_key],
           :dependent => @configuration[:dependent],
           :autosave => true
         belongs_to :parent,
+          :inverse_of => :children
           :class_name => @configuration[:class].name,
           :foreign_key => @configuration[:foreign_key],
           :touch => true,
