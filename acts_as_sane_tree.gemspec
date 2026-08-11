@@ -9,7 +9,6 @@ Gem::Specification.new do |s|
   s.homepage = 'http://github.com/chrisroberts/acts_as_sane_tree'
   s.description = 'Sane ActiveRecord tree builder'
   s.require_path = 'lib'
-  s.has_rdoc = true
   s.extra_rdoc_files = ['README.rdoc']
   s.add_dependency 'activerecord', '> 0'
   s.files = %w{
